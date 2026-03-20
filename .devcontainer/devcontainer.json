@@ -6,8 +6,5 @@
 		},
 		"ghcr.io/devcontainers/features/git-lfs:1": {}
 	},
-	"remoteEnv": {
-		"VIRTUAL_ENV": ""
-	},
 	"postCreateCommand": "sudo apt update && sudo apt install -y pipx && pipx ensurepath && pipx install poetry && unset VIRTUAL_ENV && poetry install --with dev"
 }
