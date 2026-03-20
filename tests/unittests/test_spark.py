@@ -1,7 +1,7 @@
 import pytest
 import pandas
 
-from src.utils import spark as spark_utils
+from cml_conversion_helpers.utils import spark as spark_utils
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 

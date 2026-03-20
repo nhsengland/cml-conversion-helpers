@@ -1,5 +1,4 @@
 from pyspark.sql import functions as F
-import sys
 
 
 def create_dimension_columns(

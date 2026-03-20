@@ -7,8 +7,8 @@ from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType
 
-from src.processing import processing
-from src.utils import spark as spark_utils
+from cml_conversion_helpers.processing import processing
+from cml_conversion_helpers.utils import spark as spark_utils
 
 
 def test_move_attributes_to_new_dimension(spark):

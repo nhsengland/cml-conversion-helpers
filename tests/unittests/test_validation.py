@@ -5,7 +5,7 @@ from pyspark.sql.types import (
     StringType, TimestampType, IntegerType
 )
 
-from src.validation import validation
+from cml_conversion_helpers.validation import validation
 
 
 SCHEMA = StructType([

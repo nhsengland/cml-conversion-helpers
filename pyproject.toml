@@ -1,14 +1,16 @@
 [tool.poetry]
-name = "cml-helper-functions"
+name = "cml-conversion-helpers"
 version = "0.1.0"
 description = ""
 authors = ["Data Science Skilled team <datascience@nhs.net>"]
 readme = "README.md"
+packages = [{include = "cml_conversion_helpers", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-pyspark = "3.3.2"
-pyyaml = "6.0.3"
+pyspark = ">=3.3.2"
+pyyaml = ">=6.0.3"
+requests = ">=2.28.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "6.2.5"
