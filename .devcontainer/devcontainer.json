@@ -5,5 +5,8 @@
 			"version": "8"
 		}
 	},
-	"postCreateCommand": "sudo apt update && sudo apt install -y pipx && pipx ensurepath && pipx install poetry && poetry install"
+	"remoteEnv": {
+		"VIRTUAL_ENV": ""
+	},
+	"postCreateCommand": "sudo apt update && sudo apt install -y pipx && pipx ensurepath && pipx install poetry && unset VIRTUAL_ENV && poetry install --with dev"
 }
