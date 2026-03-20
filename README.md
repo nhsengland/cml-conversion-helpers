@@ -18,6 +18,16 @@ pip install cml-conversion-helpers
 
 ## Development
 
+### Codespaces
+
+If you're using GitHub Codespaces, the container will set itself up automatically — just wait a few minutes for it to finish. Once it's ready, activate the Poetry environment in the terminal:
+
+```bash
+eval $(poetry env activate)
+```
+
+### Local
+
 ```bash
 poetry install
 poetry run pytest
