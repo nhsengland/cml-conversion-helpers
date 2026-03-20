@@ -2,7 +2,6 @@ import re
 import datetime
 
 import pytest
-import pandas
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType
@@ -47,7 +46,8 @@ def test_move_attributes_to_new_dimension(spark):
         ['a', 'b', 'c']
     )
 
-    assert df_actual.toPandas().equals(df_expected.toPandas())
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
     
 
 def test_rename_cols(spark):
@@ -85,7 +85,8 @@ def test_rename_cols(spark):
         df_test, col_name_mappings
     )
 
-    assert df_actual.toPandas().equals(df_expected.toPandas()) 
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
 
 
 def test_replace_col_values(spark):
@@ -120,7 +121,8 @@ def test_replace_col_values(spark):
         df_test, value_mappings, "col_1"
     )
 
-    assert df_actual.toPandas().equals(df_expected.toPandas()) 
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
 
 
 @pytest.mark.parametrize("test_data, mappings, col_name, expected_data", [
@@ -137,7 +139,7 @@ def test_replace_col_values_parametrized(spark, test_data, mappings, col_name, e
     df_expected = spark.createDataFrame(expected_data, col_names)
     df_actual = processing.replace_col_values(df_test, mappings, col_name)
 
-    assert df_actual.toPandas().equals(df_expected.toPandas()) 
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
 
 
 def test_concat_cols(spark):
@@ -167,7 +169,8 @@ def test_concat_cols(spark):
         df_test, "6", cols_to_concat, "", "|"
     )
 
-    assert df_actual.toPandas().equals(df_expected.toPandas()) 
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+ 
 
 
 def test_concat_cols_with_prefix(spark):
@@ -197,7 +200,7 @@ def test_concat_cols_with_prefix(spark):
         df_test, "6", cols_to_concat, "all_", "|"
     )
 
-    assert df_actual.toPandas().equals(df_expected.toPandas()) 
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
 
 
 def test_create_uuid_col(spark):

@@ -1,5 +1,4 @@
 import pytest
-import pandas
 import hashlib
 
 from pyspark.sql import functions as F
