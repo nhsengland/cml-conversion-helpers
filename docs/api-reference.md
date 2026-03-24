@@ -338,45 +338,6 @@ df = dimension_cohorts.create_md5_hash_col(df, ["location_id", "metric_id"], "ro
 
 ---
 
-## `cml_conversion_helpers.validation.validation`
-
-### `validate_schema(df, schema)`
-
-Validates that a DataFrame matches an expected schema. Raises `TypeError` with a descriptive message listing all missing columns or type mismatches.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `df` | `DataFrame` | DataFrame to validate |
-| `schema` | `StructType` | Expected schema |
-
-**Raises:** `TypeError` if validation fails
-
-```python
-from cml_conversion_helpers.validation import validation
-from cml_schemas import spark_schemas
-
-validation.validate_schema(df_metric, spark_schemas.METRIC_SCHEMA)
-```
-
----
-
-### `select_from_schema(df, schema)`
-
-Selects only the columns defined in a schema, in the order they appear in the schema.
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `df` | `DataFrame` | Input DataFrame |
-| `schema` | `StructType` | Schema defining which columns to select |
-
-**Returns:** `DataFrame`
-
-```python
-df_metric = validation.select_from_schema(df, spark_schemas.METRIC_SCHEMA)
-```
-
----
-
 ## `cml_conversion_helpers.data_exports.write_csv`
 
 ### `save_df_as_named_csv(df, output_name)`
