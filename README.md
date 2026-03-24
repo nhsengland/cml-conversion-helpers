@@ -19,10 +19,7 @@ pip install cml-conversion-helpers
 
 ## Modules
 
-- `cml_conversion_helpers.data_ingestion` — download and load source data
-- `cml_conversion_helpers.data_exports` — save Spark DataFrames as CSV
 - `cml_conversion_helpers.processing` — DataFrame transformation functions
-- `cml_conversion_helpers.utils` — Spark session, logging, and config helpers
 
 ## Documentation
 

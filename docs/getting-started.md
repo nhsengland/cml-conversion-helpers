@@ -44,12 +44,3 @@ The `dimension_cohort_id` is a `|`-separated concatenation of all dimension colu
 
 ---
 
-## Project layout (recommended)
-
-```
-my_project/
-├── config.yaml           # pipeline configuration
-├── create_cml_tables.py  # main script
-├── data_in/              # source CSVs
-└── data_out/             # output CSVs written here
-```
