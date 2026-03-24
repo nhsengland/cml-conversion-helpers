@@ -18,7 +18,7 @@ The library is designed around converting a **tidy (long) data format** into the
 | RXX      | Trust     | AgeAtBookingMotherGroup   | Age25to29   | 54        | 01/04/2026               | 30/06/2026             |
 | ALL      | England   | EthnicCategoryMotherGroup | EthnicWhite | 79        | 01/04/2026               | 30/06/2026             |
 
-In this example the `Dimension` column identifies *which* dimension the row belongs to, and the attribute value (e.g. `EthnicWhite`) sits in the `Count_Of` column.
+In this example the `Dimension` column identifies which dimension the row belongs to, and the attribute value (e.g. `EthnicWhite`) sits in the `Attribute` column.
 
 ---
 
