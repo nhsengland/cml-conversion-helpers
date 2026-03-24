@@ -1,6 +1,15 @@
 # cml-conversion-helpers
 
-Helper functions for converting data to CML schema format.
+Helper functions for converting tidy-format datasets into the NHS CML schema (metric and dimension tables).
+
+## What this library does
+
+CML expects data in two tables:
+
+- **Metric table** — one row per data point, with fields such as `metric_id`, `metric_value`, `location_id`, `reporting_period_start_datetime`, etc.
+- **Dimensions table** — one row per data point, one column per dimension (e.g. age group, ethnicity), linked to the metric table via `dimension_cohort_id`.
+
+This library takes a **tidy-format** source dataset (where dimensions are stored as rows, not columns) and provides utilities to transform it into those two tables.
 
 ## Installation
 
@@ -13,8 +22,13 @@ pip install cml-conversion-helpers
 - `cml_conversion_helpers.data_ingestion` — download and load source data
 - `cml_conversion_helpers.data_exports` — save Spark DataFrames as CSV
 - `cml_conversion_helpers.processing` — DataFrame transformation functions
-- `cml_conversion_helpers.validation` — schema validation utilities
 - `cml_conversion_helpers.utils` — Spark session, logging, and config helpers
+
+## Documentation
+
+- [Getting Started](docs/getting-started.md) — installation, concepts, and input data requirements
+- [Usage Guide](docs/usage.md) — config-driven, scripting, or hybrid approaches with full examples
+- [API Reference](docs/api-reference.md) — full function reference grouped by module
 
 ## Development
 
