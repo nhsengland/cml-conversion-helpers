@@ -31,7 +31,8 @@ def test_get_dimension_list_from_col(spark):
         df_test,
         'existing_dim',
     )
-
+    expected.sort()
+    actual.sort()
     assert expected == actual
 
 
