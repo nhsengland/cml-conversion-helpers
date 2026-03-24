@@ -13,10 +13,17 @@ python = ">=3.10, <4"
 pyspark = "^3.5"
 pyyaml = ">=6.0.3"
 requests = ">=2.28.0"
+cml-schemas = {version = "^0.1.0", source = "test-pypi"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"
 pytest-html = ">3.1.1"
+
+
+[[tool.poetry.source]]
+name = "test-pypi"
+url = "https://test.pypi.org/simple/"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
