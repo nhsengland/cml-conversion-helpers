@@ -46,3 +46,7 @@ eval $(poetry env activate)
 poetry install
 poetry run pytest
 ```
+
+## Acknowledgements
+
+Some code written by [Claude](https://www.anthropic.com/claude) (Anthropic).
