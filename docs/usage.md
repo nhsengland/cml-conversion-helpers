@@ -1,5 +1,7 @@
 # Usage Guide
 
+> **Scope:** this library provides DataFrame transformation functions only. Loading data, saving outputs, creating a SparkSession, managing config, and logging are all the responsibility of the parent project.
+
 There are three ways to use this library — pick whichever suits your project:
 
 1. **Config-driven** — define your whole pipeline in `config.yaml`; your script is minimal boilerplate.
@@ -15,12 +17,8 @@ This approach is best when you want to keep your transformation logic separate f
 ### config.yaml
 
 ```yaml
-project_name: "my_project"
 publication_date: &publication_date "01/12/2026"
 last_ingest_timestamp: &last_ingest_timestamp "15/12/2026"
-path_to_input_data: "data_in/source.csv"
-output_dir: ""
-log_dir: ""
 
 # List every dimension that exists in the Dimension column of your source data.
 # These become the dimension columns in the output dimensions table.
@@ -105,45 +103,22 @@ processing_funcs:
 ### Python script
 
 ```python
-import logging
-from cml_conversion_helpers.utils import file_paths, logging_config, spark as spark_utils
-from cml_conversion_helpers.data_ingestion import get_data, reading_data
 from cml_conversion_helpers.processing import processing, dimension_cohorts
-from cml_conversion_helpers.data_exports import write_csv
-from cml_schemas import spark_schemas
 
-logger = logging.getLogger(__name__)
+# spark, df, and config are provided by the parent project
+for func_config in config["processing_funcs"]:
+    func = processing.PROCESSING_FUNC_REGISTRY[func_config["name"]]
+    df = func(df, **func_config["params"])
 
-def main():
-    config = file_paths.get_config("config.yaml")
-    spark = spark_utils.create_spark_session(config["project_name"])
+# Build dimension columns and cohort ID
+df = dimension_cohorts.create_dimension_table(
+    df,
+    config["dimensions"],
+    dimensions_to_exclude=["custom_dimension"]  # exclude if needed
+)
 
-    df = reading_data.load_csv_into_spark_data_frame(spark, config["path_to_maternity_data"])
-
-    # Run every processing function listed in config in order
-    for func_config in config["processing_funcs"]:
-        func = processing.PROCESSING_FUNC_REGISTRY[func_config["name"]]
-        df = func(df, **func_config["params"])
-
-    # Build dimension columns and cohort ID
-    df = dimension_cohorts.create_dimension_table(
-        df,
-        config["dimensions"],
-        dimensions_to_exclude=["custom_dimension"]  # exclude if needed
-    )
-
-    # Create the combined metric+dimension ID
-    df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_cohort_id"], sep="_")
-
-    # Split into metric and dimensions tables using cml_schemas
-    dimensions_schema = spark_schemas.create_dimensions_schema(config["dimensions"])
-    df_dimensions = spark_schemas.select_from_schema(df, dimensions_schema)
-    df_metric = spark_schemas.select_from_schema(df, spark_schemas.METRIC_SCHEMA)
-
-    write_csv.save_df_as_named_csv(df_metric, "metric")
-    write_csv.save_df_as_named_csv(df_dimensions, "dimensions")
-
-    spark.stop()
+# Create the combined metric+dimension ID
+df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_cohort_id"], sep="_")
 ```
 
 ### How the registry works
@@ -177,15 +152,9 @@ def my_custom_transform(df, some_param):
 If you prefer to keep everything in Python without a config file, import and call functions directly:
 
 ```python
-from cml_conversion_helpers.utils import spark as spark_utils
-from cml_conversion_helpers.data_ingestion import reading_data
 from cml_conversion_helpers.processing import processing, dimension_cohorts
-from cml_conversion_helpers.data_exports import write_csv
-from cml_schemas import spark_schemas
 
-spark = spark_utils.create_spark_session("my_project")
-df = reading_data.load_csv_into_spark_data_frame(spark, "data_in/source.csv")
-
+# df is provided by the parent project
 df = processing.move_attributes_to_new_dimension(
     df,
     source_col_name="Org_Code",
@@ -209,32 +178,18 @@ df = processing.cast_date_col_to_timestamp(df, "publication_date")
 dimensions = ["EthnicCategoryMotherGroup", "AgeAtBookingMotherGroup"]
 df = dimension_cohorts.create_dimension_table(df, dimensions, dimensions_to_exclude=[])
 df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_cohort_id"], sep="_")
-
-df_metric = spark_schemas.select_from_schema(df, spark_schemas.METRIC_SCHEMA)
-df_dimensions = spark_schemas.select_from_schema(df, spark_schemas.create_dimensions_schema(dimensions))
-
-write_csv.save_df_as_named_csv(df_metric, "metric")
-write_csv.save_df_as_named_csv(df_dimensions, "dimensions")
-
-spark.stop()
 ```
 
 ---
 
 ## 3. Hybrid approach
 
-A common pattern is to load config for parameters (dates, paths, dimension lists) but call the transformation functions explicitly — useful when you need conditional logic or want to mix in your own custom functions alongside the library ones:
+A common pattern is to load config for parameters (dates, dimension lists) but call the transformation functions explicitly — useful when you need conditional logic or want to mix in your own custom functions alongside the library ones:
 
 ```python
-from cml_conversion_helpers.utils import file_paths, spark as spark_utils
-from cml_conversion_helpers.data_ingestion import reading_data
 from cml_conversion_helpers.processing import processing, dimension_cohorts
-from cml_conversion_helpers.data_exports import write_csv
-from cml_schemas import spark_schemas
 
-config = file_paths.get_config("config.yaml")
-spark = spark_utils.create_spark_session(config["project_name"])
-df = reading_data.load_csv_into_spark_data_frame(spark, config["path_to_maternity_data"])
+# spark, df, and config are provided by the parent project
 
 # Use the registry for the bulk of standard transforms...
 for func_config in config["processing_funcs"]:
@@ -246,39 +201,4 @@ df = my_own_special_transform(df)
 
 df = dimension_cohorts.create_dimension_table(df, config["dimensions"], dimensions_to_exclude=[])
 df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_cohort_id"], sep="_")
-
-df_metric = spark_schemas.select_from_schema(df, spark_schemas.METRIC_SCHEMA)
-df_dimensions = spark_schemas.select_from_schema(df, spark_schemas.create_dimensions_schema(config["dimensions"]))
-
-write_csv.save_df_as_named_csv(df_metric, "metric")
-write_csv.save_df_as_named_csv(df_dimensions, "dimensions")
-spark.stop()
-```
-
----
-
-## Downloading source data
-
-If your source data is distributed as a zip file at a URL, use `get_data`:
-
-```python
-from cml_conversion_helpers.data_ingestion import get_data
-
-path = get_data.download_zip_from_url(
-    zip_file_url="https://example.com/data.zip",
-    overwrite=False,       # set True to replace an existing download
-    output_path="data_in"  # defaults to "data_in/<filename>" if omitted
-)
-```
-
-## Schema validation
-
-Before final export you can validate that your DataFrame matches the expected CML schema:
-
-```python
-from cml_conversion_helpers.validation import validation
-from cml_schemas import spark_schemas
-
-validation.validate_schema(df_metric, spark_schemas.METRIC_SCHEMA)
-# raises TypeError with details if any columns are missing or have wrong types
 ```
