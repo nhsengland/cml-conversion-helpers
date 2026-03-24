@@ -6,25 +6,6 @@
 pip install cml-conversion-helpers
 ```
 
-The package also depends on `cml-schemas`, which is currently hosted on Test PyPI. If you are installing manually or using Poetry, add Test PyPI as an explicit source:
-
-```toml
-# pyproject.toml
-[[tool.poetry.source]]
-name = "test-pypi"
-url = "https://test.pypi.org/simple/"
-priority = "explicit"
-
-[tool.poetry.dependencies]
-cml-schemas = {version = "^0.1.0", source = "test-pypi"}
-```
-
-Then install:
-
-```bash
-poetry install
-```
-
 ---
 
 ## Understanding the expected input format
