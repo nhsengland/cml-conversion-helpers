@@ -43,6 +43,7 @@ def download_zip_from_url(
             raise Exception(f"The zipfile already exists at: {output_path}")
 
     response = requests.get(zip_file_url, stream=True,timeout=3600)
+    response.raise_for_status()
     downloaded_zip = zipfile.ZipFile(io.BytesIO(response.content))
     downloaded_zip.extractall(output_path)
 

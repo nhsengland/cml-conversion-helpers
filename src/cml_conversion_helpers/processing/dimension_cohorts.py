@@ -99,7 +99,8 @@ def create_dimension_table(df, dimension_cols, dimensions_to_exclude, dimension_
     dimension_cols : list
         The list of dimension names to create columns for and include in the cohort ID.
     dimensions_to_exclude : list
-        Dimensions to skip when creating dimension columns.
+        Dimensions to skip when creating dimension columns. Typically this will be because the dimension column was created
+        by another function.
     dimension_col_name : str, optional
         The column in `df` containing the dimension identifier. Defaults to "Dimension".
     attribute_col_name : str, optional

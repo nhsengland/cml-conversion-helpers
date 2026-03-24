@@ -29,4 +29,3 @@ def configure_logging(
             logging.StreamHandler(sys.stdout) # Add second handler to print log message to screen
         ]  
     )
-    logger = logging.getLogger(__name__)

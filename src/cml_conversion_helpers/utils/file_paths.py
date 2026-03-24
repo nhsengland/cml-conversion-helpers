@@ -26,7 +26,6 @@ def get_config(
 
     Example
     -------
-        from shmi_improvement.utilities.helpers import get_config
         config = get_config()
     """
     with pathlib.Path(yaml_path).open('r') as file:

@@ -51,7 +51,6 @@ def rename_csv_output(
     """
     path = rf'data_out/{output_name}/*.csv'
     files = glob.glob(path)
-    print(files)
     os.rename(files[0], str(Path(f'data_out/{output_name}/{output_name}.csv')) )
 
 
