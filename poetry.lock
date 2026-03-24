@@ -29,23 +29,18 @@ unicode-backport = ["unicodedata2"]
 
 [[package]]
 name = "cml-schemas"
-version = "0.1.0"
+version = "0.1.2"
 description = "CML Spark schemas"
 optional = false
-python-versions = ">=3.10,<4"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "cml_schemas-0.1.0-py3-none-any.whl", hash = "sha256:8621fc8956e356767fced0c74a57194f1b0471f6e4735458e40a99b317a96a8b"},
-    {file = "cml_schemas-0.1.0.tar.gz", hash = "sha256:71e5421dc8068d1c57bc8ebf0f700ae287f2e0493cacd3587acb827fde0f8b45"},
+    {file = "cml_schemas-0.1.2-py3-none-any.whl", hash = "sha256:8bd10233f3cb2e5a29b12e96caf0d1f5c7794dca56f7386e0767ab6f3132b44a"},
+    {file = "cml_schemas-0.1.2.tar.gz", hash = "sha256:3ff1eb107e51291c3c2a4105aa2043f025e17cc2c678836f7912b8464f4118a8"},
 ]
 
 [package.dependencies]
-pyspark = ">3.5"
-
-[package.source]
-type = "legacy"
-url = "https://test.pypi.org/simple"
-reference = "test-pypi"
+pyspark = ">=3.5"
 
 [[package]]
 name = "colorama"
@@ -558,4 +553,4 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <4"
-content-hash = "c4a9b637e8356f81531fff529f4ff53b90395dbb2a1829ded501dfc4288f1f8b"
+content-hash = "5adaf94f007dc4eeb25d9078df2e40c35d608a3aaa5481a49bee858952d15e63"
