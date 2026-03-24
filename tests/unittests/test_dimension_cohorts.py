@@ -5,7 +5,6 @@ from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 
 from cml_conversion_helpers.processing import dimension_cohorts
-from cml_conversion_helpers.utils import spark as spark_utils
     
 
 def test_get_dimension_list_from_col(spark):
