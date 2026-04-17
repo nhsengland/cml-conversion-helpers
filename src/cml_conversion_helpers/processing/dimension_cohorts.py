@@ -155,6 +155,31 @@ def get_dimension_list_from_col(df, dimension_col_name):
     return dimension_cols
 
 
+def add_dimension_count_col(df, dimension_cols):
+    """Adds a `dimension_count` column counting how many dimension columns are not set to their "all_" default.
+
+    For each column in `dimension_cols`, a value of ``all_<column_name>`` is treated as the
+    "all" sentinel. Any other value contributes 1 to the count.
+
+    Parameters
+    ----------
+    df : pyspark.sql.DataFrame
+        The input DataFrame, expected to contain all columns named in `dimension_cols`.
+    dimension_cols : list
+        The dimension column names to inspect.
+
+    Returns
+    -------
+    pyspark.sql.DataFrame
+        The DataFrame with a new integer ``dimension_count`` column added.
+    """
+    count_expr = F.lit(0)
+    for dim in dimension_cols:
+        count_expr = count_expr + F.when(F.col(dim) != F.lit(f"all_{dim}"), 1).otherwise(0)
+
+    return df.withColumn("dimension_count", count_expr)
+
+
 def create_md5_hash_col(df, cols, new_col_name):
     """Creates a new column containing the MD5 hash of the concatenation of specified columns.
 
