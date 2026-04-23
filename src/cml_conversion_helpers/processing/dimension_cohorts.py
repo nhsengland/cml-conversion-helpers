@@ -155,11 +155,19 @@ def get_dimension_list_from_col(df, dimension_col_name):
     return dimension_cols
 
 
-def create_dimension_count_col(df, dimension_cols, new_col_name):
-    """Creates a new integer column counting how many dimension columns are not set to their "all_" default.
+def _is_sentinel(col_name):
+    """Returns a Spark boolean expression that is true when a dimension column holds a sentinel value.
 
-    For each column in `dimension_cols`, a value of ``all_<column_name>`` is treated as the
-    "all" sentinel. Any other value contributes 1 to the count.
+    Sentinel values indicate "no filter applied": ``all_<col_name>`` or ``no_<col_name>_filter``.
+    """
+    return (F.col(col_name) == F.lit(f"all_{col_name}")) | (F.col(col_name) == F.lit(f"no_{col_name}_filter"))
+
+
+def create_dimension_count_col(df, dimension_cols, new_col_name):
+    """Creates a new integer column counting how many dimension columns are not set to a sentinel value.
+
+    Sentinel values are ``all_<column_name>`` and ``no_<column_name>_filter``.
+    Any other value contributes 1 to the count.
 
     Parameters
     ----------
@@ -177,17 +185,18 @@ def create_dimension_count_col(df, dimension_cols, new_col_name):
     """
     count_expr = F.lit(0)
     for dim in dimension_cols:
-        count_expr = count_expr + F.when(F.col(dim) != F.lit(f"all_{dim}"), 1).otherwise(0)
+        count_expr = count_expr + F.when(_is_sentinel(dim), 0).otherwise(1)
 
     return df.withColumn(new_col_name, count_expr)
 
 
 def create_dimension_type_col(df, dimension_cols, new_col_name):
-    """Creates a new column identifying which dimensions have specific (non-"all_") values.
+    """Creates a new column identifying which dimensions have specific (non-sentinel) values.
 
-    For each row, inspects each column in `dimension_cols`. Columns whose value is not
-    ``all_<column_name>`` have their name included in the result, concatenated with ``&``.
-    If all columns carry their ``all_*`` sentinel value, the result is ``"total"``.
+    For each row, inspects each column in `dimension_cols`. Columns whose value is not a
+    sentinel (``all_<column_name>`` or ``no_<column_name>_filter``) have their name included
+    in the result, concatenated with ``&``. If all columns carry a sentinel value, the result
+    is ``"total"``.
 
     Parameters
     ----------
@@ -204,7 +213,7 @@ def create_dimension_type_col(df, dimension_cols, new_col_name):
         The DataFrame with the new dimension type column added.
     """
     parts = [
-        F.when(F.col(dim) != F.lit(f"all_{dim}"), F.lit(dim))
+        F.when(~_is_sentinel(dim), F.lit(dim))
         for dim in dimension_cols
     ]
 

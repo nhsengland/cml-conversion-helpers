@@ -37,12 +37,13 @@ def test_get_dimension_list_from_col(spark):
 
 def test_create_dimension_count_col(spark):
     """
-    Tests create_dimension_count_col counts the number of non-"all_" dimension values per row.
+    Tests create_dimension_count_col counts the number of non-sentinel dimension values per row.
     """
     test_data = [
-        ('all_Ethnicity', 'all_Age_band'),  # both all → 0
-        ('all_Ethnicity', '15-19'),          # one non-all → 1
-        ('Asian', '25-29'),                  # both non-all → 2
+        ('all_Ethnicity', 'all_Age_band'),        # both all_ sentinel → 0
+        ('no_Ethnicity_filter', 'all_Age_band'),   # both sentinel (no_ variant) → 0
+        ('all_Ethnicity', '15-19'),                # one non-sentinel → 1
+        ('Asian', '25-29'),                        # both non-sentinel → 2
     ]
     test_cols = ['Ethnicity', 'Age_band']
     df_test = spark.createDataFrame(test_data, test_cols)
@@ -54,16 +55,19 @@ def test_create_dimension_count_col(spark):
     rows = {(r['Ethnicity'], r['Age_band']): r['dimension_count'] for r in result.collect()}
 
     assert rows[('all_Ethnicity', 'all_Age_band')] == 0
+    assert rows[('no_Ethnicity_filter', 'all_Age_band')] == 0
     assert rows[('all_Ethnicity', '15-19')] == 1
     assert rows[('Asian', '25-29')] == 2
 
 
 def test_create_dimension_type_col(spark):
     test_data = [
-        ('all_Ethnicity', 'all_Age_band'),
-        ('all_Ethnicity', '15-19'),
-        ('Asian', '25-29'),
-        ('Asian', 'all_Age_band'),
+        ('all_Ethnicity', 'all_Age_band'),        # both all_ sentinel → total
+        ('no_Ethnicity_filter', 'all_Age_band'),   # both sentinel (no_ variant) → total
+        ('all_Ethnicity', '15-19'),                # one non-sentinel → Age_band
+        ('Asian', '25-29'),                        # both non-sentinel → Ethnicity&Age_band
+        ('Asian', 'all_Age_band'),                 # one non-sentinel → Ethnicity
+        ('no_Ethnicity_filter', '15-19'),          # mixed sentinel types → Age_band
     ]
     test_cols = ['Ethnicity', 'Age_band']
     df_test = spark.createDataFrame(test_data, test_cols)
@@ -75,9 +79,11 @@ def test_create_dimension_type_col(spark):
     rows = {(r['Ethnicity'], r['Age_band']): r['dimension_type'] for r in result.collect()}
 
     assert rows[('all_Ethnicity', 'all_Age_band')] == 'total'
+    assert rows[('no_Ethnicity_filter', 'all_Age_band')] == 'total'
     assert rows[('all_Ethnicity', '15-19')] == 'Age_band'
     assert rows[('Asian', '25-29')] == 'Ethnicity&Age_band'
     assert rows[('Asian', 'all_Age_band')] == 'Ethnicity'
+    assert rows[('no_Ethnicity_filter', '15-19')] == 'Age_band'
 
 
 def test_create_md5_hash_col(spark):
