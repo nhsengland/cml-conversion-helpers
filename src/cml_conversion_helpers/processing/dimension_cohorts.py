@@ -155,7 +155,7 @@ def get_dimension_list_from_col(df, dimension_col_name):
     return dimension_cols
 
 
-def add_dimension_count_col(df, dimension_cols):
+def create_dimension_count_col(df, dimension_cols):
     """Adds a `dimension_count` column counting how many dimension columns are not set to their "all_" default.
 
     For each column in `dimension_cols`, a value of ``all_<column_name>`` is treated as the

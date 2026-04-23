@@ -35,9 +35,9 @@ def test_get_dimension_list_from_col(spark):
     assert expected == actual
 
 
-def test_add_dimension_count_col(spark):
+def test_create_dimension_count_col(spark):
     """
-    Tests add_dimension_count_col counts the number of non-"all_" dimension values per row.
+    Tests create_dimension_count_col counts the number of non-"all_" dimension values per row.
     """
     test_data = [
         ('all_Ethnicity', 'all_Age_band'),  # both all → 0
@@ -47,7 +47,7 @@ def test_add_dimension_count_col(spark):
     test_cols = ['Ethnicity', 'Age_band']
     df_test = spark.createDataFrame(test_data, test_cols)
 
-    result = dimension_cohorts.add_dimension_count_col(df_test, ['Ethnicity', 'Age_band'])
+    result = dimension_cohorts.create_dimension_count_col(df_test, ['Ethnicity', 'Age_band'])
 
     assert 'dimension_count' in result.columns
 
