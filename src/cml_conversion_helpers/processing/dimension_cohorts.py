@@ -180,6 +180,40 @@ def add_dimension_count_col(df, dimension_cols):
     return df.withColumn("dimension_count", count_expr)
 
 
+def create_dimension_type_col(df, dimension_cols, new_col_name):
+    """Creates a new column identifying which dimensions have specific (non-"all_") values.
+
+    For each row, inspects each column in `dimension_cols`. Columns whose value is not
+    ``all_<column_name>`` have their name included in the result, concatenated with ``&``.
+    If all columns carry their ``all_*`` sentinel value, the result is ``"total"``.
+
+    Parameters
+    ----------
+    df : pyspark.sql.DataFrame
+        The input DataFrame, expected to contain all columns named in `dimension_cols`.
+    dimension_cols : list
+        The dimension column names to inspect.
+    new_col_name : str
+        The name of the new column to create.
+
+    Returns
+    -------
+    pyspark.sql.DataFrame
+        The DataFrame with the new dimension type column added.
+    """
+    parts = [
+        F.when(F.col(dim) != F.lit(f"all_{dim}"), F.lit(dim))
+        for dim in dimension_cols
+    ]
+
+    concatenated = F.concat_ws("&", *parts)
+
+    return df.withColumn(
+        new_col_name,
+        F.when(concatenated.isNull() | (concatenated == ""), F.lit("total")).otherwise(concatenated)
+    )
+
+
 def create_md5_hash_col(df, cols, new_col_name):
     """Creates a new column containing the MD5 hash of the concatenation of specified columns.
 

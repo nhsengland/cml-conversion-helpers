@@ -58,6 +58,28 @@ def test_add_dimension_count_col(spark):
     assert rows[('Asian', '25-29')] == 2
 
 
+def test_create_dimension_type_col(spark):
+    test_data = [
+        ('all_Ethnicity', 'all_Age_band'),
+        ('all_Ethnicity', '15-19'),
+        ('Asian', '25-29'),
+        ('Asian', 'all_Age_band'),
+    ]
+    test_cols = ['Ethnicity', 'Age_band']
+    df_test = spark.createDataFrame(test_data, test_cols)
+
+    result = dimension_cohorts.create_dimension_type_col(df_test, ['Ethnicity', 'Age_band'], 'dimension_type')
+
+    assert 'dimension_type' in result.columns
+
+    rows = {(r['Ethnicity'], r['Age_band']): r['dimension_type'] for r in result.collect()}
+
+    assert rows[('all_Ethnicity', 'all_Age_band')] == 'total'
+    assert rows[('all_Ethnicity', '15-19')] == 'Age_band'
+    assert rows[('Asian', '25-29')] == 'Ethnicity&Age_band'
+    assert rows[('Asian', 'all_Age_band')] == 'Ethnicity'
+
+
 def test_create_md5_hash_col(spark):
     """
     Tests create_md5_hash_col produces a consistent MD5 hash from multiple columns.
