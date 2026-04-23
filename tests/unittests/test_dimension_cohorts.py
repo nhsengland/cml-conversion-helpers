@@ -47,7 +47,7 @@ def test_create_dimension_count_col(spark):
     test_cols = ['Ethnicity', 'Age_band']
     df_test = spark.createDataFrame(test_data, test_cols)
 
-    result = dimension_cohorts.create_dimension_count_col(df_test, ['Ethnicity', 'Age_band'])
+    result = dimension_cohorts.create_dimension_count_col(df_test, ['Ethnicity', 'Age_band'], 'dimension_count')
 
     assert 'dimension_count' in result.columns
 
