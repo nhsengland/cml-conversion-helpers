@@ -4,7 +4,7 @@ import hashlib
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
 
-from cml_conversion_helpers.processing import dimension_cohorts
+from cml_conversion_helpers.spark_functions import dimension_cohorts
     
 
 def test_get_dimension_list_from_col(spark):
