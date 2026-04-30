@@ -155,6 +155,76 @@ def get_dimension_list_from_col(df, dimension_col_name):
     return dimension_cols
 
 
+def _is_sentinel(col_name):
+    """Returns a Spark boolean expression that is true when a dimension column holds a sentinel value.
+
+    Sentinel values indicate "no filter applied": ``all_<col_name>`` or ``no_<col_name>_filter``.
+    """
+    return (F.col(col_name) == F.lit(f"all_{col_name}")) | (F.col(col_name) == F.lit(f"no_{col_name}_filter"))
+
+
+def create_dimension_count_col(df, dimension_cols, new_col_name):
+    """Creates a new integer column counting how many dimension columns are not set to a sentinel value.
+
+    Sentinel values are ``all_<column_name>`` and ``no_<column_name>_filter``.
+    Any other value contributes 1 to the count.
+
+    Parameters
+    ----------
+    df : pyspark.sql.DataFrame
+        The input DataFrame, expected to contain all columns named in `dimension_cols`.
+    dimension_cols : list
+        The dimension column names to inspect.
+    new_col_name : str
+        The name of the new column to create.
+
+    Returns
+    -------
+    pyspark.sql.DataFrame
+        The DataFrame with a new integer column added.
+    """
+    count_expr = F.lit(0)
+    for dim in dimension_cols:
+        count_expr = count_expr + F.when(_is_sentinel(dim), 0).otherwise(1)
+
+    return df.withColumn(new_col_name, count_expr)
+
+
+def create_dimension_type_col(df, dimension_cols, new_col_name):
+    """Creates a new column identifying which dimensions have specific (non-sentinel) values.
+
+    For each row, inspects each column in `dimension_cols`. Columns whose value is not a
+    sentinel (``all_<column_name>`` or ``no_<column_name>_filter``) have their name included
+    in the result, concatenated with ``&``. If all columns carry a sentinel value, the result
+    is ``"total"``.
+
+    Parameters
+    ----------
+    df : pyspark.sql.DataFrame
+        The input DataFrame, expected to contain all columns named in `dimension_cols`.
+    dimension_cols : list
+        The dimension column names to inspect.
+    new_col_name : str
+        The name of the new column to create.
+
+    Returns
+    -------
+    pyspark.sql.DataFrame
+        The DataFrame with the new dimension type column added.
+    """
+    parts = [
+        F.when(~_is_sentinel(dim), F.lit(dim))
+        for dim in dimension_cols
+    ]
+
+    concatenated = F.concat_ws("&", *parts)
+
+    return df.withColumn(
+        new_col_name,
+        F.when(concatenated.isNull() | (concatenated == ""), F.lit("total")).otherwise(concatenated)
+    )
+
+
 def create_md5_hash_col(df, cols, new_col_name):
     """Creates a new column containing the MD5 hash of the concatenation of specified columns.
 
