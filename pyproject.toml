@@ -11,6 +11,7 @@ packages = [{include = "cml_conversion_helpers", from = "src"}]
 [tool.poetry.dependencies]
 python = ">=3.10, <4"
 pyspark = "^3.5"
+pandas = ">=1.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"
