@@ -1,7 +1,9 @@
 import datetime
 import re
+import json
 
 import pandas as pd
+import numpy as np
 import pytest
 
 from cml_conversion_helpers.pandas_functions import processing
@@ -159,3 +161,89 @@ def test_add_lit_col_does_not_affect_other_columns():
 
     assert actual.loc[0, "col_1"] == "x"
     assert actual.loc[0, "col_2"] == "y"
+
+def test_add_json_key_with_null():
+    result = processing.add_json_key(None, "location_id", "booking_site")
+    assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_add_json_key_with_nan():
+    result = processing.add_json_key(np.nan, "location_id", "booking_site")
+    assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_add_json_key_with_empty_string():
+    result = processing.add_json_key("", "location_id", "booking_site")
+    assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_add_json_key_with_existing_json():
+    cell = '{"data_source":"official_stats"}'
+    result = processing.add_json_key(cell, "location_id", "booking_site")
+    assert json.loads(result) == {
+        "data_source": "official_stats",
+        "location_id": "booking_site",
+    }
+
+
+def test_add_json_key_overwrites_existing_key():
+    cell = '{"location_id":"old_value"}'
+    result = processing.add_json_key(cell, "location_id", "booking_site")
+    assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_add_json_key_with_invalid_json():
+    result = processing.add_json_key("not valid json", "location_id", "booking_site")
+    assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_add_dict_to_json_col_with_null():
+    new_values = {
+        "location_id": "booking_site",
+        "another_thing": "another_value",
+    }
+    result = processing.add_dict_to_json_col(None, new_values)
+    assert json.loads(result) == new_values
+
+
+def test_add_dict_to_json_col_with_empty_string():
+    new_values = {
+        "location_id": "booking_site",
+        "another_thing": "another_value",
+    }
+    result = processing.add_dict_to_json_col("", new_values)
+    assert json.loads(result) == new_values
+
+
+def test_add_dict_to_json_col_with_existing_json():
+    cell = '{"data_source":"official_stats"}'
+    new_values = {
+        "location_id": "booking_site",
+        "another_thing": "another_value",
+    }
+    result = processing.add_dict_to_json_col(cell, new_values)
+    assert json.loads(result) == {
+        "data_source": "official_stats",
+        "location_id": "booking_site",
+        "another_thing": "another_value",
+    }
+
+
+def test_add_dict_to_json_col_overwrites_existing_keys():
+    cell = '{"location_id":"old_value","data_source":"official_stats"}'
+    new_values = {
+        "location_id": "booking_site",
+        "another_thing": "another_value",
+    }
+    result = processing.add_dict_to_json_col(cell, new_values)
+    assert json.loads(result) == {
+        "location_id": "booking_site",
+        "data_source": "official_stats",
+        "another_thing": "another_value",
+    }
+
+
+def test_add_dict_to_json_col_with_invalid_json():
+    new_values = {"location_id": "booking_site"}
+    result = processing.add_dict_to_json_col("not valid json", new_values)
+    assert json.loads(result) == {"location_id": "booking_site"}

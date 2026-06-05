@@ -1,4 +1,5 @@
 import uuid
+import json
 
 import pandas as pd
 
@@ -220,3 +221,88 @@ def add_lit_col(df, col_name, col_value):
     df = df.copy()
     df[col_name] = col_value
     return df
+
+
+@register
+def add_dict_to_json_col(cell, new_values):
+    """
+    Add or update multiple key-value pairs in a JSON object stored as a string.
+
+    If `cell` is null, empty, or contains invalid JSON, it is treated as an
+    empty JSON object (`{}`). The function then merges `new_values` into the
+    parsed JSON object and returns the result as a compact JSON string.
+
+    Parameters
+    ----------
+    cell : str, None, or NaN
+        A string containing a JSON object, or a null/empty value.
+    new_values : dict
+        A dictionary of key-value pairs to add or update in the JSON object.
+
+    Returns
+    -------
+    str
+        A compact JSON string with the merged key-value pairs.
+
+    Examples
+    --------
+    >>> new_values = {"location_id": "booking_site", "another_thing": "another_value"}
+    >>> add_dict_to_json_col(None, new_values)
+    '{"location_id":"booking_site","another_thing":"another_value"}'
+
+    >>> add_dict_to_json_col('{"data_source": "official_stats"}', new_values)
+    '{"data_source":"official_stats","location_id":"booking_site","another_thing":"another_value"}'
+    """
+    if pd.isna(cell) or str(cell).strip() == "":
+        data = {}
+    else:
+        try:
+            data = json.loads(cell)
+        except (json.JSONDecodeError, TypeError):
+            data = {}
+
+    data.update(new_values)
+    return json.dumps(data, separators=(",", ":"))
+
+
+@register
+def add_json_key(cell, key, value):
+    """
+    Add or update a key-value pair in a JSON object stored as a string.
+
+    If `cell` is null, empty, or contains invalid JSON, it is treated as an
+    empty JSON object (`{}`). The function then adds or updates `key` with
+    `value` and returns the result as a compact JSON string.
+
+    Parameters
+    ----------
+    cell : str, None, or NaN
+        A string containing a JSON object, or a null/empty value.
+    key : str
+        The key to add or update in the JSON object.
+    value : Any
+        The value to assign to `key`.
+
+    Returns
+    -------
+    str
+        A compact JSON string with the added or updated key-value pair.
+
+    Examples
+    --------
+    >>> add_json_key(None, "location_id", "booking_site")
+    '{"location_id":"booking_site"}'
+
+    >>> add_json_key('{"data_source": "official_stats"}', "location_id", "booking_site")
+    '{"data_source":"official_stats","location_id":"booking_site"}'
+    """
+    if pd.isna(cell) or str(cell).strip() == "":
+        data = {}
+    else:
+        try:
+            data = json.loads(cell)
+        except (json.JSONDecodeError, TypeError):
+            data = {}
+
+    data[key] = value
+    return json.dumps(data, separators=(",", ":"))
