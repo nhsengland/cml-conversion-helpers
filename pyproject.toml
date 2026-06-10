@@ -1,12 +1,12 @@
 [project]
 name = "cml-conversion-helpers"
-version = "0.3.0"
+version = "0.4.0"
 description = "Helper functions for converting data to the NHS CML schema format."
 readme = "README.md"
 requires-python = ">=3.10, <4"
 license = { text = "MIT" }
 authors = [
-  { name = "Data Science Skilled team", email = "datascience@nhs.net" }
+  { name = "Data Science Team", email = "datascience@nhs.net" }
 ]
 dependencies = [
   "pyspark>=3.5,<4.0",
