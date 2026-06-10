@@ -29,20 +29,27 @@ pip install cml-conversion-helpers
 
 ## Development
 
-### Codespaces
+Before you build and publish, make sure you:
 
-If you're using GitHub Codespaces, the container will set itself up automatically — just wait a few minutes for it to finish. Once it's ready, activate the Poetry environment in the terminal:
+* Update the README.md if new instructions are needed
+* Update the CHANGELOG.md (paste the git diff since the last version into your favourite bot and ask it to make you a changelog entry)
+* Bump the version number (use SemVer) in pyproject.toml
 
-```bash
-eval $(poetry env activate)
-```
-
-### Local
+When you are ready:
 
 ```bash
-poetry install
-poetry run pytest
+python -m venv venv
+
+source venv/bin/activate # if on Linux or...
+source venv/Scripts/activate # if on Windows
+
+pip install build twine
+python -m build
+python -m twine upload dist/* # for PyPi or...
+python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/* # for Test PyPi
 ```
+
+You'll be prompted for your API token, paste it in and press enter. 
 
 ## Acknowledgements
 
