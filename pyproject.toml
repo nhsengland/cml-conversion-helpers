@@ -1,28 +1,33 @@
-[tool.poetry]
+[project]
 name = "cml-conversion-helpers"
-version = "0.3.0"
+version = "0.4.1"
 description = "Helper functions for converting data to the NHS CML schema format."
-authors = ["Data Science Skilled team <datascience@nhs.net>"]
 readme = "README.md"
-license = "MIT"
-repository = "https://github.com/nhsengland/cml-conversion-helpers"
-packages = [{include = "cml_conversion_helpers", from = "src"}]
+requires-python = ">=3.10, <4"
+license = { text = "MIT" }
+authors = [
+  { name = "Data Science Team", email = "datascience@nhs.net" }
+]
+dependencies = [
+  "pyspark>=3.5,<4.0",
+  "pandas>=1.5",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10, <4"
-pyspark = "^3.5"
-pandas = ">=1.5"
+[project.urls]
+Repository = "https://github.com/nhsengland/cml-conversion-helpers"
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8.0"
-pytest-html = ">3.1.1"
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-html>3.1.1",
+]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
 
-[[tool.poetry.source]]
-name = "test-pypi"
-url = "https://test.pypi.org/simple/"
-priority = "explicit"
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.build_meta"
