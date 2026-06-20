@@ -13,49 +13,6 @@ def register(func):
 
 
 @register
-def move_attributes_to_new_dimension(
-    df,
-    source_col_name,
-    source_col_fill_value,
-    new_col_name,
-    new_col_fill_value,
-    attributes_to_move,
-):
-    """Moves specified attribute values from one column into a new dimension column.
-
-    Rows whose source column value is in `attributes_to_move` are updated: their
-    source column is replaced with `source_col_fill_value` and the matched value is
-    placed into `new_col_name`. All other rows get `new_col_fill_value` in `new_col_name`.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The input DataFrame.
-    source_col_name : str
-        The name of the column from which attributes will be moved.
-    source_col_fill_value : str
-        The value to fill in `source_col_name` for rows whose attribute was moved.
-    new_col_name : str
-        The name of the new column to create for the moved attributes.
-    new_col_fill_value : str
-        The fill value for `new_col_name` in rows whose attribute was not moved.
-    attributes_to_move : list
-        The list of attribute values to move from `source_col_name` to `new_col_name`.
-
-    Returns
-    -------
-    pandas.DataFrame
-        The updated DataFrame with `new_col_name` added and the specified attributes moved.
-    """
-    df = df.copy()
-    mask = df[source_col_name].isin(attributes_to_move)
-    df[new_col_name] = new_col_fill_value
-    df.loc[mask, new_col_name] = df.loc[mask, source_col_name]
-    df.loc[mask, source_col_name] = source_col_fill_value
-    return df
-
-
-@register
 def rename_cols(df, col_name_mappings):
     """Renames columns in a DataFrame according to a mapping dictionary.
 
