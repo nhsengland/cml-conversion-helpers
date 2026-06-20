@@ -1,5 +1,6 @@
 import uuid
 import json
+import hashlib
 
 import pandas as pd
 
@@ -263,3 +264,84 @@ def add_json_key(cell, key, value):
 
     data[key] = value
     return json.dumps(data, separators=(",", ":"))
+
+
+@register
+def create_md5_hash_col(df, cols, new_col_name):
+    """Creates a new column containing the MD5 hash of the concatenation of specified columns.
+
+    Columns are joined with "|" before hashing.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The input DataFrame.
+    cols : list
+        The list of column names whose values will be concatenated and hashed.
+    new_col_name : str
+        The name of the new MD5 hash column.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The DataFrame with the new MD5 hash column added.
+    """
+    df = df.copy()
+    df[new_col_name] = df[cols].apply(
+        lambda row: hashlib.md5("|".join(str(v) for v in row).encode()).hexdigest(),
+        axis=1,
+    )
+    return df
+
+
+@register
+def create_md5_hash_col_with_exceptions(
+    df,
+    cols,
+    new_col_name,
+    ignore_prefixes=None,
+):
+    """Creates a new column containing the MD5 hash of the
+    concatenation of specified columns.
+
+    Values whose string representation starts with any of the
+    prefixes in ignore_prefixes are excluded from the hash.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The input DataFrame.
+    cols : list
+        The list of column names to use.
+    new_col_name : str
+        The name of the new MD5 hash column.
+    ignore_prefixes : list[str], optional
+        Value prefixes to ignore when generating the hash.
+        Example: ["all_", "no_"]
+
+    Returns
+    -------
+    pandas.DataFrame
+        The DataFrame with the new hash column added.
+    """
+    ignore_prefixes = tuple(ignore_prefixes or [])
+
+    def _build_hash(row):
+        parts = []
+
+        for col in cols:
+            value = str(row[col])
+
+            if value.startswith(ignore_prefixes):
+                continue
+
+            parts.append(f"{col}={value}")
+
+        hash_input = "|".join(sorted(parts)) or "__ALL__"
+
+        return hashlib.md5(hash_input.encode()).hexdigest()
+
+    df = df.copy()
+    df[new_col_name] = df.apply(_build_hash, axis=1)
+
+    return df

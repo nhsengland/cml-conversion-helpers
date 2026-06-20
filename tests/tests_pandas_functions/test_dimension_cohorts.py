@@ -52,23 +52,19 @@ def test_create_dimension_type_col():
     assert rows[("no_Ethnicity_filter", "15-19")]         == "Age_band"
 
 
-def test_create_md5_hash_col():
-    df = pd.DataFrame({
-        "name": ["alice", "bob", "alice"],
-        "age":  ["42",    "99",  "42"],
+def test_move_attributes_to_new_dimension():
+    df = pd.DataFrame({"existing_dim": ["1", "2", "3", "a", "b", "c"]})
+
+    expected = pd.DataFrame({
+        "existing_dim": ["1", "2", "3", "all_numbers", "all_numbers", "all_numbers"],
+        "new_dim":      ["all_letters", "all_letters", "all_letters", "a", "b", "c"],
     })
 
-    result = dimension_cohorts.create_md5_hash_col(df, ["name", "age"], "row_hash")
+    actual = dimension_cohorts.move_attributes_to_new_dimension(
+        df, "existing_dim", "all_numbers", "new_dim", "all_letters", ["a", "b", "c"]
+    )
 
-    assert "row_hash" in result.columns
-
-    def expected_md5(name, age):
-        return hashlib.md5(f"{name}|{age}".encode()).hexdigest()
-
-    result = result.sort_values(["name", "age"]).reset_index(drop=True)
-
-    assert result.loc[0, "row_hash"] == expected_md5("alice", "42")
-    assert result.loc[1, "row_hash"] == expected_md5("alice", "42")
-    assert result.loc[2, "row_hash"] == expected_md5("bob", "99")
-
-    assert result.loc[0, "row_hash"] == result.loc[1, "row_hash"]
+    pd.testing.assert_frame_equal(
+        actual.sort_values(actual.columns.tolist()).reset_index(drop=True),
+        expected.sort_values(expected.columns.tolist()).reset_index(drop=True),
+    )

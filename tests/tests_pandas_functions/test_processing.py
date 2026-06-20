@@ -1,30 +1,13 @@
 import datetime
 import re
 import json
+import hashlib
 
 import pandas as pd
 import numpy as np
 import pytest
 
 from cml_conversion_helpers.pandas_functions import processing
-
-
-def test_move_attributes_to_new_dimension():
-    df = pd.DataFrame({"existing_dim": ["1", "2", "3", "a", "b", "c"]})
-
-    expected = pd.DataFrame({
-        "existing_dim": ["1", "2", "3", "all_numbers", "all_numbers", "all_numbers"],
-        "new_dim":      ["all_letters", "all_letters", "all_letters", "a", "b", "c"],
-    })
-
-    actual = processing.move_attributes_to_new_dimension(
-        df, "existing_dim", "all_numbers", "new_dim", "all_letters", ["a", "b", "c"]
-    )
-
-    pd.testing.assert_frame_equal(
-        actual.sort_values(actual.columns.tolist()).reset_index(drop=True),
-        expected.sort_values(expected.columns.tolist()).reset_index(drop=True),
-    )
 
 
 def test_rename_cols():
@@ -247,3 +230,113 @@ def test_add_dict_to_json_col_with_invalid_json():
     new_values = {"location_id": "booking_site"}
     result = processing.add_dict_to_json_col("not valid json", new_values)
     assert json.loads(result) == {"location_id": "booking_site"}
+
+
+def test_create_md5_hash_col():
+    df = pd.DataFrame({
+        "name": ["alice", "bob", "alice"],
+        "age":  ["42",    "99",  "42"],
+    })
+
+    result = processing.create_md5_hash_col(df, ["name", "age"], "row_hash")
+
+    assert "row_hash" in result.columns
+
+    def expected_md5(name, age):
+        return hashlib.md5(f"{name}|{age}".encode()).hexdigest()
+
+    result = result.sort_values(["name", "age"]).reset_index(drop=True)
+
+    assert result.loc[0, "row_hash"] == expected_md5("alice", "42")
+    assert result.loc[1, "row_hash"] == expected_md5("alice", "42")
+    assert result.loc[2, "row_hash"] == expected_md5("bob", "99")
+
+    assert result.loc[0, "row_hash"] == result.loc[1, "row_hash"]
+
+
+def test_hash_basic_stable_output():
+    df = pd.DataFrame(
+        {
+            "age": ["20-24"],
+            "ethnicity": ["white"],
+            "smoking_status": ["non-smoker"],
+        }
+    )
+
+    out = processing.create_md5_hash_col_with_exceptions(df, ["age", "ethnicity", "smoking_status"], "id")
+
+    expected_input = "age=20-24|ethnicity=white|smoking_status=non-smoker"
+    expected_hash = hashlib.md5(expected_input.encode()).hexdigest()
+
+    assert out.loc[0, "id"] == expected_hash
+
+
+def test_ignore_prefixes_removes_values():
+    df = pd.DataFrame(
+        {
+            "age": ["20-24"],
+            "ethnicity": ["all_ethnicity"],
+            "smoking_status": ["all_smoking_status"],
+        }
+    )
+
+    out = processing.create_md5_hash_col_with_exceptions(
+        df,
+        ["age", "ethnicity", "smoking_status"],
+        "id",
+        ignore_prefixes=["all_"],
+    )
+
+    expected_input = "age=20-24"
+    expected_hash = hashlib.md5(expected_input.encode()).hexdigest()
+
+    assert out.loc[0, "id"] == expected_hash
+
+
+def test_all_values_ignored_returns_all_placeholder():
+    df = pd.DataFrame(
+        {
+            "age": ["all_age"],
+            "ethnicity": ["all_ethnicity"],
+        }
+    )
+
+    out = processing.create_md5_hash_col_with_exceptions(
+        df,
+        ["age", "ethnicity"],
+        "id",
+        ignore_prefixes=["all_"],
+    )
+
+    expected_hash = hashlib.md5("__ALL__".encode()).hexdigest()
+
+    assert out.loc[0, "id"] == expected_hash
+
+
+def test_column_name_included_in_hash_input():
+    df = pd.DataFrame(
+        {
+            "age": ["20-24"],
+            "ethnicity": ["white"],
+        }
+    )
+
+    out = processing.create_md5_hash_col_with_exceptions(df, ["age", "ethnicity"], "id")
+
+    wrong_input = "20-24|white"
+    wrong_hash = hashlib.md5(wrong_input.encode()).hexdigest()
+
+    assert out.loc[0, "id"] != wrong_hash
+
+
+def test_consistency_across_multiple_rows():
+    df = pd.DataFrame(
+        {
+            "age": ["20-24", "20-24"],
+            "ethnicity": ["white", "white"],
+        }
+    )
+
+    out = processing.create_md5_hash_col_with_exceptions(df, ["age", "ethnicity"], "id")
+
+    assert out.loc[0, "id"] == out.loc[1, "id"]
