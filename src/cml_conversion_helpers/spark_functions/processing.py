@@ -122,7 +122,7 @@ def replace_col_values(df, value_mappings, col_name):
 
 
 @register
-def concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|", suffix="", new_col_suffix=""):
+def concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|", suffix=""):
     """Concatenates multiple columns into a new column, with an optional prefix, suffix, and separator.
 
     Parameters
@@ -139,8 +139,6 @@ def concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|", suffix="",
         The separator to use between values. Defaults to "|".
     suffix : str, optional
         A suffix to append to each column name before concatenating. Defaults to "".
-    new_col_suffix : str, optional
-        A suffix to append to new_col_name. Defaults to "".
 
     Returns
     -------
@@ -149,7 +147,7 @@ def concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|", suffix="",
     """
     cols_to_concat = [prefix + col + suffix for col in cols_to_concat]
 
-    df = df.withColumn(new_col_name + new_col_suffix,
+    df = df.withColumn(new_col_name, 
         F.concat_ws(sep, *cols_to_concat)
     )
 
