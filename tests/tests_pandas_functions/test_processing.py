@@ -101,16 +101,16 @@ def test_concat_cols_with_prefix_and_suffix():
     assert list(actual["6"]) == expected_concat
 
 
-def test_concat_cols_with_new_col_suffix():
+def test_concat_cols_with_value_suffix():
     df = pd.DataFrame(
-        [("1", "2", "3", "4", "5"), ("1", " ", "3", "4", "5"), ("1", "2", None, "4", "5")],
-        columns=["1", "2", "3", "4", "5"],
+        [("ageAtDelivery", "women"), ("ageAtDelivery", None)],
+        columns=["metric", "counts_of"],
     )
-    expected_concat = ["1|2|3|4|5", "1| |3|4|5", "1|2|4|5"]
+    expected_concat = ["ageAtDelivery_women_est", "ageAtDelivery_est"]
 
-    actual = processing.concat_cols(df, "6", ["1", "2", "3", "4", "5"], "", "|", "", "_col_sfx")
+    actual = processing.concat_cols(df, "combined", ["metric", "counts_of"], sep="_", value_suffix="est")
 
-    assert list(actual["6_col_sfx"]) == expected_concat
+    assert list(actual["combined"]) == expected_concat
 
 
 def test_create_uuid_col():

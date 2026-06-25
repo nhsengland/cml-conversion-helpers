@@ -258,29 +258,27 @@ def test_concat_cols_with_prefix_and_suffix(spark):
     assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
 
 
-def test_concat_cols_with_new_col_suffix(spark):
+def test_concat_cols_with_value_suffix(spark):
     """
-    Tests concat_cols with new_col_suffix
+    Tests concat_cols with value_suffix appended to the concatenated result
     """
 
     test_data = [
-        ("1", "2", "3", "4", "5"),
-        ("1", " ", "3", "4", "5"),
-        ("1", "2", None, "4", "5"),
+        ("ageAtDelivery", "women"),
+        ("ageAtDelivery", None),
     ]
-    test_cols = ["1", "2", "3", "4", "5"]
+    test_cols = ["metric", "counts_of"]
     df_test = spark.createDataFrame(test_data, test_cols)
 
     expected_data = [
-        ("1", "2", "3", "4", "5", "1|2|3|4|5"),
-        ("1", " ", "3", "4", "5", "1| |3|4|5"),
-        ("1", "2", None, "4", "5", "1|2|4|5"),
+        ("ageAtDelivery", "women", "ageAtDelivery_women_est"),
+        ("ageAtDelivery", None, "ageAtDelivery_est"),
     ]
-    expected_cols = ["1", "2", "3", "4", "5", "6_col_sfx"]
+    expected_cols = ["metric", "counts_of", "combined"]
     df_expected = spark.createDataFrame(expected_data, expected_cols)
 
     df_actual = processing.concat_cols(
-        df_test, "6", ["1", "2", "3", "4", "5"], "", "|", "", "_col_sfx"
+        df_test, "combined", ["metric", "counts_of"], sep="_", value_suffix="est"
     )
 
     assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
