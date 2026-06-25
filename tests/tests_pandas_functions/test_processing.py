@@ -101,6 +101,18 @@ def test_concat_cols_with_prefix_and_suffix():
     assert list(actual["6"]) == expected_concat
 
 
+def test_concat_cols_with_value_suffix():
+    df = pd.DataFrame(
+        [("ageAtDelivery", "women"), ("ageAtDelivery", None)],
+        columns=["metric", "counts_of"],
+    )
+    expected_concat = ["ageAtDelivery_women_est", "ageAtDelivery_est"]
+
+    actual = processing.concat_cols(df, "combined", ["metric", "counts_of"], sep="_", value_suffix="est")
+
+    assert list(actual["combined"]) == expected_concat
+
+
 def test_create_uuid_col():
     df = pd.DataFrame({"existing_col": ["a", "b", "c", "d", "e"]})
     uuid_length = 12

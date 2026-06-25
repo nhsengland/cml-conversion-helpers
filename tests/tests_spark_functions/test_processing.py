@@ -258,6 +258,32 @@ def test_concat_cols_with_prefix_and_suffix(spark):
     assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
 
 
+def test_concat_cols_with_value_suffix(spark):
+    """
+    Tests concat_cols with value_suffix appended to the concatenated result
+    """
+
+    test_data = [
+        ("ageAtDelivery", "women"),
+        ("ageAtDelivery", None),
+    ]
+    test_cols = ["metric", "counts_of"]
+    df_test = spark.createDataFrame(test_data, test_cols)
+
+    expected_data = [
+        ("ageAtDelivery", "women", "ageAtDelivery_women_est"),
+        ("ageAtDelivery", None, "ageAtDelivery_est"),
+    ]
+    expected_cols = ["metric", "counts_of", "combined"]
+    df_expected = spark.createDataFrame(expected_data, expected_cols)
+
+    df_actual = processing.concat_cols(
+        df_test, "combined", ["metric", "counts_of"], sep="_", value_suffix="est"
+    )
+
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
+
 def test_create_uuid_col(spark):
     """
     Tests create_uuid_col.
