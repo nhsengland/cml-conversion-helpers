@@ -77,6 +77,30 @@ def test_concat_cols_with_prefix():
     assert list(actual["6"]) == expected_concat
 
 
+def test_concat_cols_with_suffix():
+    df = pd.DataFrame(
+        [("1", "2", "3", "4", "5"), ("1", " ", "3", "4", "5"), ("1", "2", None, "4", "5")],
+        columns=["1_sfx", "2_sfx", "3_sfx", "4_sfx", "5_sfx"],
+    )
+    expected_concat = ["1|2|3|4|5", "1| |3|4|5", "1|2|4|5"]
+
+    actual = processing.concat_cols(df, "6", ["1", "2", "3", "4", "5"], "", "|", "_sfx")
+
+    assert list(actual["6"]) == expected_concat
+
+
+def test_concat_cols_with_prefix_and_suffix():
+    df = pd.DataFrame(
+        [("1", "2", "3", "4", "5"), ("1", " ", "3", "4", "5"), ("1", "2", None, "4", "5")],
+        columns=["pre_1_sfx", "pre_2_sfx", "pre_3_sfx", "pre_4_sfx", "pre_5_sfx"],
+    )
+    expected_concat = ["1|2|3|4|5", "1| |3|4|5", "1|2|4|5"]
+
+    actual = processing.concat_cols(df, "6", ["1", "2", "3", "4", "5"], "pre_", "|", "_sfx")
+
+    assert list(actual["6"]) == expected_concat
+
+
 def test_create_uuid_col():
     df = pd.DataFrame({"existing_col": ["a", "b", "c", "d", "e"]})
     uuid_length = 12

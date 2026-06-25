@@ -202,6 +202,62 @@ def test_concat_cols_with_prefix(spark):
     assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
 
 
+def test_concat_cols_with_suffix(spark):
+    """
+    Tests concat_cols with suffix
+    """
+
+    test_data = [
+        ("1", "2", "3", "4", "5"),
+        ("1", " ", "3", "4", "5"),
+        ("1", "2", None, "4", "5"),
+    ]
+    test_cols = ["1_sfx", "2_sfx", "3_sfx", "4_sfx", "5_sfx"]
+    df_test = spark.createDataFrame(test_data, test_cols)
+
+    expected_data = [
+        ("1", "2", "3", "4", "5", "1|2|3|4|5"),
+        ("1", " ", "3", "4", "5", "1| |3|4|5"),
+        ("1", "2", None, "4", "5", "1|2|4|5"),
+    ]
+    expected_cols = ["1_sfx", "2_sfx", "3_sfx", "4_sfx", "5_sfx", "6"]
+    df_expected = spark.createDataFrame(expected_data, expected_cols)
+
+    df_actual = processing.concat_cols(
+        df_test, "6", ["1", "2", "3", "4", "5"], "", "|", "_sfx"
+    )
+
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
+
+def test_concat_cols_with_prefix_and_suffix(spark):
+    """
+    Tests concat_cols with both prefix and suffix
+    """
+
+    test_data = [
+        ("1", "2", "3", "4", "5"),
+        ("1", " ", "3", "4", "5"),
+        ("1", "2", None, "4", "5"),
+    ]
+    test_cols = ["pre_1_sfx", "pre_2_sfx", "pre_3_sfx", "pre_4_sfx", "pre_5_sfx"]
+    df_test = spark.createDataFrame(test_data, test_cols)
+
+    expected_data = [
+        ("1", "2", "3", "4", "5", "1|2|3|4|5"),
+        ("1", " ", "3", "4", "5", "1| |3|4|5"),
+        ("1", "2", None, "4", "5", "1|2|4|5"),
+    ]
+    expected_cols = ["pre_1_sfx", "pre_2_sfx", "pre_3_sfx", "pre_4_sfx", "pre_5_sfx", "6"]
+    df_expected = spark.createDataFrame(expected_data, expected_cols)
+
+    df_actual = processing.concat_cols(
+        df_test, "6", ["1", "2", "3", "4", "5"], "pre_", "|", "_sfx"
+    )
+
+    assert df_actual.orderBy(df_actual.columns).collect() == df_expected.orderBy(df_expected.columns).collect()
+
+
 def test_create_uuid_col(spark):
     """
     Tests create_uuid_col.
