@@ -1,6 +1,6 @@
 [project]
 name = "cml-conversion-helpers"
-version = "0.4.1"
+version = "0.5.0"
 description = "Helper functions for converting data to the NHS CML schema format."
 readme = "README.md"
 requires-python = ">=3.10, <4"

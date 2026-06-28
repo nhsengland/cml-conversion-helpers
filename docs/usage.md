@@ -103,7 +103,7 @@ processing_funcs:
 ### Python script
 
 ```python
-from cml_conversion_helpers.processing import processing, dimension_cohorts
+from cml_conversion_helpers.spark_functions import processing, dimension_cohorts
 
 # spark, df, and config are provided by the parent project
 for func_config in config["processing_funcs"]:
@@ -126,7 +126,7 @@ df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_
 `PROCESSING_FUNC_REGISTRY` is a plain dictionary that maps function name strings to the actual functions. Any function decorated with `@register` in `processing.py` is automatically added to it:
 
 ```python
-from cml_conversion_helpers.processing.processing import PROCESSING_FUNC_REGISTRY
+from cml_conversion_helpers.spark_functions.processing import PROCESSING_FUNC_REGISTRY
 
 print(list(PROCESSING_FUNC_REGISTRY.keys()))
 # ['move_attributes_to_new_dimension', 'rename_cols', 'replace_col_values',
@@ -137,7 +137,7 @@ print(list(PROCESSING_FUNC_REGISTRY.keys()))
 You can extend it with your own functions by applying the same decorator to any function in your own code:
 
 ```python
-from cml_conversion_helpers.processing.processing import register, PROCESSING_FUNC_REGISTRY
+from cml_conversion_helpers.spark_functions.processing import register, PROCESSING_FUNC_REGISTRY
 
 @register
 def my_custom_transform(df, some_param):
@@ -152,7 +152,7 @@ def my_custom_transform(df, some_param):
 If you prefer to keep everything in Python without a config file, import and call functions directly:
 
 ```python
-from cml_conversion_helpers.processing import processing, dimension_cohorts
+from cml_conversion_helpers.spark_functions import processing, dimension_cohorts
 
 # df is provided by the parent project
 df = processing.move_attributes_to_new_dimension(
@@ -187,7 +187,7 @@ df = processing.concat_cols(df, "metric_dimension_id", ["metric_id", "dimension_
 A common pattern is to load config for parameters (dates, dimension lists) but call the transformation functions explicitly — useful when you need conditional logic or want to mix in your own custom functions alongside the library ones:
 
 ```python
-from cml_conversion_helpers.processing import processing, dimension_cohorts
+from cml_conversion_helpers.spark_functions import processing, dimension_cohorts
 
 # spark, df, and config are provided by the parent project
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.0] - 2026-06-28
+
+### Added
+- `create_md5_hash_col_with_exceptions` in `pandas_functions.processing`: creates an MD5 hash column like `create_md5_hash_col`, but excludes values whose string representation starts with any prefix in a configurable `ignore_prefixes` list. Useful for generating stable cohort IDs that are unaffected by sentinel/filter values (e.g. `"all_"`, `"no_"`).
+- `value_suffix` parameter to `concat_cols` in both `spark_functions.processing` and `pandas_functions.processing`: appends a fixed string (with the separator) to the end of the concatenated result.
+
+### Changed
+- `move_attributes_to_new_dimension` in the pandas module has been moved from `pandas_functions.processing` to `pandas_functions.dimension_cohorts` to match its Spark counterpart.
+
+### Fixed
+- `suffix` parameter to `concat_cols` (both Spark and pandas) was broken in a previous release; the implementation is now correct.
+
+
 ## [0.4.0] - 2026-06-10
 
 ### Added
