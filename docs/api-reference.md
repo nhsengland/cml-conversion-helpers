@@ -2,7 +2,7 @@
 
 ---
 
-## `cml_conversion_helpers.processing.processing`
+## `cml_conversion_helpers.spark_functions.processing`
 
 All functions in this module are decorated with `@register` and are available via `PROCESSING_FUNC_REGISTRY` for config-driven pipelines.
 
@@ -69,7 +69,7 @@ df = processing.replace_col_values(df, {"ALL": "england"}, "Org_Code")
 
 ---
 
-### `concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|")`
+### `concat_cols(df, new_col_name, cols_to_concat, prefix="", sep="|", suffix="", value_suffix="")`
 
 Concatenates multiple columns into a new column.
 
@@ -80,11 +80,16 @@ Concatenates multiple columns into a new column.
 | `cols_to_concat` | `list` | — | Columns to concatenate |
 | `prefix` | `str` | `""` | Optional prefix prepended to each column name before lookup |
 | `sep` | `str` | `"\|"` | Separator between values |
+| `suffix` | `str` | `""` | Optional suffix appended to each column name before lookup |
+| `value_suffix` | `str` | `""` | Fixed string appended (with `sep`) to the concatenated result |
 
 **Returns:** `DataFrame`
 
 ```python
 df = processing.concat_cols(df, "metric_id", ["Dimension", "Count_Of"], sep="_")
+
+# Append a fixed string to the end of the concatenated result:
+df = processing.concat_cols(df, "metric_id", ["Dimension", "Count_Of"], sep="_", value_suffix="total")
 ```
 
 ---
@@ -115,7 +120,7 @@ Casts a string date column to a timestamp.
 |-----------|------|---------|-------------|
 | `df` | `DataFrame` | — | Input DataFrame |
 | `col_name` | `str` | — | Column to cast |
-| `format` | `str` | `"dd/MM/yyyy"` | Date format string |
+| `format` | `str` | `"dd/MM/yyyy"` | Date format string (Java-style, e.g. `dd/MM/yyyy`) |
 
 **Returns:** `DataFrame`
 
@@ -161,7 +166,7 @@ df = processing.add_lit_col(df, "additional_metric_values", None)
 
 ---
 
-## `cml_conversion_helpers.processing.dimension_cohorts`
+## `cml_conversion_helpers.spark_functions.dimension_cohorts`
 
 ### `create_dimension_table(df, dimension_cols, dimensions_to_exclude, dimension_col_name="Dimension", attribute_col_name="Measure")`
 
@@ -178,7 +183,7 @@ Convenience function that calls `create_dimension_columns` and `create_dimension
 **Returns:** `DataFrame` with one new column per dimension (minus exclusions) and a `dimension_cohort_id` column.
 
 ```python
-from cml_conversion_helpers.processing import dimension_cohorts
+from cml_conversion_helpers.spark_functions import dimension_cohorts
 
 df = dimension_cohorts.create_dimension_table(
     df,
@@ -236,3 +241,119 @@ Creates a column containing the MD5 hash of the `|`-joined values of the specifi
 df = dimension_cohorts.create_md5_hash_col(df, ["location_id", "metric_id"], "row_hash")
 ```
 
+---
+
+## `cml_conversion_helpers.pandas_functions.processing`
+
+Pandas equivalents of all functions in `spark_functions.processing`, plus the following pandas-only additions.
+
+> **Note:** `move_attributes_to_new_dimension` is available in `pandas_functions.dimension_cohorts`, not in this module.
+
+### `add_json_key(cell, key, value)`
+
+Adds or updates a single key-value pair in a JSON object stored as a string. Null, empty, or invalid JSON cells are treated as `{}`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cell` | `str \| None \| NaN` | A JSON string, or a null/empty value |
+| `key` | `str` | Key to add or update |
+| `value` | `any` | Value to assign |
+
+**Returns:** `str` (compact JSON string)
+
+```python
+df["metadata"] = df["metadata"].apply(lambda c: add_json_key(c, "location_id", "booking_site"))
+```
+
+---
+
+### `add_dict_to_json_col(cell, new_values)`
+
+Merges multiple key-value pairs into a JSON object stored as a string. Null, empty, or invalid JSON cells are treated as `{}`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `cell` | `str \| None \| NaN` | A JSON string, or a null/empty value |
+| `new_values` | `dict` | Key-value pairs to add or update |
+
+**Returns:** `str` (compact JSON string)
+
+```python
+df["metadata"] = df["metadata"].apply(
+    lambda c: add_dict_to_json_col(c, {"location_id": "booking_site", "source": "official"})
+)
+```
+
+---
+
+### `create_md5_hash_col(df, cols, new_col_name)`
+
+Creates a column containing the MD5 hash of the `|`-joined values of the specified columns.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `df` | `pandas.DataFrame` | Input DataFrame |
+| `cols` | `list` | Columns whose values are concatenated and hashed |
+| `new_col_name` | `str` | Name of the new hash column |
+
+**Returns:** `pandas.DataFrame`
+
+---
+
+### `create_md5_hash_col_with_exceptions(df, cols, new_col_name, ignore_prefixes=None)`
+
+Creates an MD5 hash column like `create_md5_hash_col`, but excludes values whose string representation starts with any prefix in `ignore_prefixes`. Useful for generating stable cohort IDs that are unaffected by sentinel/filter values such as `"all_"` or `"no_"`.
+
+Each included value is formatted as `col=value` before hashing, and the parts are sorted before joining — so the hash is order-independent. If all values are excluded, the hash input defaults to `"__ALL__"`.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `df` | `pandas.DataFrame` | — | Input DataFrame |
+| `cols` | `list` | — | Columns to use |
+| `new_col_name` | `str` | — | Name of the new hash column |
+| `ignore_prefixes` | `list[str]` | `None` | Value prefixes to exclude from the hash (e.g. `["all_", "no_"]`) |
+
+**Returns:** `pandas.DataFrame`
+
+```python
+df = processing.create_md5_hash_col_with_exceptions(
+    df,
+    cols=["age_group", "ethnicity", "location_id"],
+    new_col_name="cohort_hash",
+    ignore_prefixes=["all_", "no_"]
+)
+```
+
+---
+
+## `cml_conversion_helpers.pandas_functions.dimension_cohorts`
+
+Pandas equivalents of all functions in `spark_functions.dimension_cohorts`, plus `move_attributes_to_new_dimension`.
+
+### `move_attributes_to_new_dimension(df, source_col_name, source_col_fill_value, new_col_name, new_col_fill_value, attributes_to_move)`
+
+Moves specified attribute values from one column into a new dimension column. Rows whose `source_col_name` value is in `attributes_to_move` are updated: their source column is replaced with `source_col_fill_value` and the matched value is placed into `new_col_name`. All other rows get `new_col_fill_value` in `new_col_name`.
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `df` | `pandas.DataFrame` | Input DataFrame |
+| `source_col_name` | `str` | Column to move values from |
+| `source_col_fill_value` | `str` | Replacement value for `source_col_name` in moved rows |
+| `new_col_name` | `str` | Name of the new column |
+| `new_col_fill_value` | `str` | Default value for `new_col_name` in non-moved rows |
+| `attributes_to_move` | `list` | Values to move |
+
+**Returns:** `pandas.DataFrame`
+
+```python
+from cml_conversion_helpers.pandas_functions import dimension_cohorts
+
+df = dimension_cohorts.move_attributes_to_new_dimension(
+    df,
+    source_col_name="Org_Code",
+    source_col_fill_value="england",
+    new_col_name="mbrrace_grouping",
+    new_col_fill_value="no_mbrrace_grouping_filter",
+    attributes_to_move=["Group 1. Level 3 NICU & NS", "Group 2. Level 3 NICU"]
+)
+```

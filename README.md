@@ -19,7 +19,10 @@ pip install cml-conversion-helpers
 
 ## Modules
 
-- `cml_conversion_helpers.processing` — DataFrame transformation functions
+- `cml_conversion_helpers.spark_functions.processing` — Spark DataFrame transformation functions
+- `cml_conversion_helpers.spark_functions.dimension_cohorts` — Spark dimension table helpers
+- `cml_conversion_helpers.pandas_functions.processing` — pandas DataFrame transformation functions
+- `cml_conversion_helpers.pandas_functions.dimension_cohorts` — pandas dimension table helpers
 
 ## Documentation
 
